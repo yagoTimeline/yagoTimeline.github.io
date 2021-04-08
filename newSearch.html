@@ -22,8 +22,8 @@
         const subject = urlParams.get('subj');											// isolates subj eg: https://www.wikidata.org/wiki/Q937
 
         var data2;
-        var dataQ = [];
-        var dataS = [];
+         // first query
+        var dataS = []; // second Q
 
         //google.charts.load('current', {'packages':['timeline']});
         // google.charts.setOnLoadCallback(loadData);
@@ -57,24 +57,31 @@
 		LIMIT 200
 	`;  
         
-       var dataS = new Array();
-        var deathDate = new Date();
+       
+        
+      //  var dataQ = {};
         												// Assume query has no end/death date, set to current date
    
-            
+            function getQueryData(){
+
         d3.sparql(wikiData, datesQuery).then(function (data) {
             
             console.log("We got birth data and death date for QUERY1");
             console.log(data);
-        dataQ = data.slice();
+            dataQ = data.slice();
             console.log(dataQ);
         
-            
+          // return data;
         });
-    
-       
-    
+
+         return dataQ;
+    }
+
         
+       
+       // var Test = getQueryData();
+       // console.log(Test);
+
      
          
         
@@ -101,12 +108,92 @@
 
         d3.sparql(wikiData, starQuery).then(function (data) {
 
-            console.log(data);
+            //console.log(data);
             ////////////////////////////
             //google.charts.load('current', { 'packages': ['timeline'] });
             // google.charts.setOnLoadCallback(drawChart);
-            dataS = data.slice();
-            console.log(dataS);
+         
+           
+            
+
+            function getRandomData(ordinal = false) {
+             console.log("David");
+              console.log(data);
+             var groups = 1;
+             var startDate;
+             var endDate;
+             var pName;
+             var oName;
+               const NGROUPS = groups;
+               var MINTIME = data[0].start;
+             // MAXLINES = 15,
+             // MAXSEGMENTS = 20,
+             // MAXCATEGORIES = 20,
+           
+
+             var deathDate = new Date();
+
+             data.forEach(function (arrayItem) {
+                startDate = new Date(arrayItem.start);
+                //console.log(startDate);
+                endDate = new Date(startDate.getTime()+1000*60*60*24);
+                pName = arrayItem.pName;
+                oName = arrayItem.oName;
+
+                if(arrayItem.pName ==="date of death")									// There is a death/end date
+			{
+				console.log("Has DEATH DATE");
+				endDate = new Date(arrayItem.end);
+			}
+                if(startDate<MINTIME){
+                    MINTIME = startDate;
+              }
+                
+                })
+             console.log(MINTIME);
+
+             return [...Array(NGROUPS).keys()].map(i => ({
+                 group: subject,
+                 data: getGroupData()
+             }));
+
+             //
+
+             // the group is the subject -- Albert Einstein = g1
+             function getGroupData() {
+
+                 return [...Array(data.length).keys()].map(i => ({
+                     label: data[i].oName,
+                     data: getSegmentsData()
+                 }));
+
+                 //
+                 //ie the bars in the timeline
+                 function getSegmentsData() {
+             
+                     const nSegments = data.length,
+                         segMaxLength = Math.round(((new Date()) - MINTIME) / nSegments);
+                     let runLength = MINTIME;
+                    return [...Array(1).keys()].map(i => {
+                        start = data[i].start,
+                       // console.log(start);
+                         end = data[i].end;
+
+                        runLength = new Date(start.getTime() + segMaxLength);
+
+                         return {
+                             timeRange: [start, end],
+                             val: data[i].pName,
+                             //labelVal: is optional - only displayed in the labels
+                         };
+                     });
+                 }
+             }
+         }
+         TimelinesChart()
+		 	.data(getRandomData(true))
+		 	.zQualitative(true)
+		 	(document.getElementById('chart_div'));
                   
         });
            
@@ -123,52 +210,7 @@
        
        
 
-         function getRandomData(ordinal = false) {
-             
-              
-             var groups = 1;
-             const NGROUPS = groups,
-             // MAXLINES = 15,
-             // MAXSEGMENTS = 20,
-             // MAXCATEGORIES = 20,
-             MINTIME = dataQ.obj;
-             return [...Array(NGROUPS).keys()].map(i => ({
-                 group: 'group' + (i + 1),
-                 data: getGroupData()
-             }));
-
-             //
-
-             // the group is the subject -- Albert Einstein = g1
-             function getGroupData() {
-
-                 return [...Array(dataQ.length).keys()].map(i => ({
-                     label: starQ.pName,
-                     data: getSegmentsData()
-                 }));
-
-                 //
-                 //ie the bars in the timeline
-                 function getSegmentsData() {
-             
-                     const nSegments = dataS.length,
-                         segMaxLength = Math.round(((new Date()) - MINTIME) / nSegments);
-                     let runLength = MINTIME;
-                    return [...Array(nSegments).keys()].map(i => {
-                        start = dataS.obj,
-                         end = new Date(start.getTime()+1000*60*60*24);
-
-                        runLength = new Date(runLength.getTime() + segMaxLength);
-
-                         return {
-                             timeRange: [start, end],
-                             val: ordinal ? dataS.pName : dataS.pName,
-                             //labelVal: is optional - only displayed in the labels
-                         };
-                     });
-                 }
-             }
-         }
+         
         //     // draws chart
  
         /*
@@ -201,10 +243,7 @@
     <div id="chart_div" style="overflow-x: scroll; overflow-y: scroll; height: 85%; width: 100%;font-size: 11px; "></div>
 
     <script>
-             TimelinesChart()
-		 	.data(getRandomData(true))
-		 	.zQualitative(true)
-		 	(document.getElementById('chart_div'));
+           
     </script>
 
     <!-- Search wikiData SPARQL database and retrieve corrsepond Qxyz-->
