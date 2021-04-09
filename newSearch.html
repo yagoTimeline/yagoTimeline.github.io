@@ -81,10 +81,10 @@
 
         d3.sparql(wikiData, datesQuery).then(function (data) {
             
-            console.log("We got birth data and death date for QUERY1");
-            console.log(data);
+            //console.log("We got birth data and death date for QUERY1");
+            //console.log(data);
             dataQ = data.slice();
-            console.log(dataQ);
+            //console.log(dataQ);
         
           // return data;
         });
@@ -122,7 +122,7 @@
         
 
         d3.sparql(wikiData, starQuery).then(function (data) {
-            //console.log(data);
+            console.log(data);
             ////////////////////////////
             //google.charts.load('current', { 'packages': ['timeline'] });
             // google.charts.setOnLoadCallback(drawChart);
@@ -133,6 +133,7 @@
             function getRandomData(ordinal = false) {
                 var groups = 1;
                 const NGROUPS = groups;
+                var MAXTIME = data[0].start;
                 var MINTIME = data[0].start;       //assume start date of first entry is earliest date
                                                                 
                                                                 // Need to sort array based on start-date
@@ -141,17 +142,23 @@
                     {
                         MINTIME = arrayItem.start;
                     }
-                    //arrayItem.start.sort();
+                    if(arrayItem.start>MAXTIME)
+                    {
+                        MAXTIME = arrayItem.start;
+                    }
                 });
 
+                const sortedData = data.sort((a,b) => Date.parse(a.start) - Date.parse(b.start))
+                data = sortedData;
+
              return [...Array(NGROUPS).keys()].map(i => ({
-                 group: data[i].oName,                          //left hand side of grid, need to make query name, currently set as data[0].oName
+                 group: document.getElementById('textID').value,                          //left hand side of grid, need to make query name, currently set as data[0].oName
                  data: getGroupData()
              }));
 
              // the group is the subject -- Albert Einstein = g1
              function getGroupData() {                         //called once
-                console.log(data);
+                //console.log(data);
                  return [...Array(data.length).keys()].map(i => ({
                      label: data[i].oName,                     //right hand side of graph
                      data: getSegmentsData(i)
@@ -161,7 +168,7 @@
                  //ie the bars in the timeline
                  function getSegmentsData(index)                 //called data.length times
                  {                      
-                    console.log("getSegments called");
+                    //console.log("getSegments called");
                     //const nSegments = data.length,
                     const   nSegments = 1,                                                          // ????
                             segMaxLength = Math.round(((new Date()) - MINTIME) / nSegments);        // ????
@@ -183,19 +190,19 @@
              }
          }
          let scale = d3.scaleOrdinal(['#E67B7B', '#FF8F00', '#FFF300', '#6AD96A', '#6A8AD9', '#726AD9', '#C16AD9', '#9D6F6F']);    // red, orange, yellow, green, blue, lilac, purple
-         console.log("Data pre-sort");
-         console.log(data);
+         //console.log("Data pre-sort");
+         //console.log(data);
 
          
          TimelinesChart()
             .rightMargin(200)               // 200 pixels
 		 	.data(getRandomData(true))
-            .sortChrono([true])             //????
+            //.sortChrono([true])             //Places in order of end date if true
 		 	.zQualitative(true)             //???? - https://github.com/vasturiano/timelines-chart for more details
             .zColorScale(scale)             // Uses scale above to color each oName
 		 	(document.getElementById('chart_div'));
-        console.log("After sort");
-        console.log(data);
+        //console.log("After sort");
+        //console.log(data);
         });
     </script>
 </head>
@@ -249,7 +256,8 @@
        
         onClick="javascript: window.open('C:/Users/soap1/Documents/GitHub/yagoTimeline.github.io/newSearch.html?subj=http://www.wikidata.org/entity/' + document.getElementById('textID').value, '_self');" />
     --> 
-    <input type="button" id="btn" value="Submit" onClick="javascript: window.open('file:///F:/3rd%20Year/Semester2/SWENG/yagoTimeline.github.io/newSearch.html?subj=http://www.wikidata.org/entity/' + document.getElementById('textID').value, '_self');" />
+    <!--<input type="button" id="btn" value="Submit" onClick="javascript: window.open('file:///F:/3rd%20Year/Semester2/SWENG/yagoTimeline.github.io/newSearch.html?subj=http://www.wikidata.org/entity/' + document.getElementById('textID').value, '_self');" /> -->
+    <input type="button" id="btn" value="Submit" onClick="javascript: window.open('https://yagotimeline.github.io/search.html?subj=http://www.wikidata.org/entity/' + document.getElementById('textID').value, '_self');" />
 
     <p>Or click on the items in the timeline below:</p>
     <div id="chart_div" style="overflow-x: scroll; overflow-y: scroll; height: 85%; width: 100%;font-size: 11px; "></div>
